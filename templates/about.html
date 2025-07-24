@@ -1,0 +1,66 @@
+
+{% extends 'base.html' %}
+{% block title %}About - CapAble{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card card-custom">
+        <div class="card-header bg-info text-white">
+          <h3 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>About CapAble
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-4">
+            <div class="logo-icon mx-auto mb-3" style="width: 80px; height: 80px;">
+              <i class="fas fa-chart-line fa-2x text-white"></i>
+            </div>
+            <h2>CapAble Financial Management</h2>
+            <p class="lead text-muted">Your personal finance companion</p>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-4">
+              <div class="feature-box text-center">
+                <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
+                <h5>Track Expenses</h5>
+                <p class="text-muted">Monitor your spending and income with detailed transaction records.</p>
+              </div>
+            </div>
+            <div class="col-md-6 mb-4">
+              <div class="feature-box text-center">
+                <i class="fas fa-calculator fa-3x text-success mb-3"></i>
+                <h5>Financial Overview</h5>
+                <p class="text-muted">Get instant insights into your financial health with real-time calculations.</p>
+              </div>
+            </div>
+            <div class="col-md-6 mb-4">
+              <div class="feature-box text-center">
+                <i class="fas fa-mobile-alt fa-3x text-warning mb-3"></i>
+                <h5>Mobile Friendly</h5>
+                <p class="text-muted">Access your financial data anywhere with our responsive design.</p>
+              </div>
+            </div>
+            <div class="col-md-6 mb-4">
+              <div class="feature-box text-center">
+                <i class="fas fa-shield-alt fa-3x text-danger mb-3"></i>
+                <h5>Secure & Private</h5>
+                <p class="text-muted">Your financial data is stored securely and remains private.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+              <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

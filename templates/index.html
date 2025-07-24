@@ -1,0 +1,291 @@
+
+{% extends 'base.html' %}
+{% block title %}Dashboard - CapAble{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-4 fw-bold mb-3">Welcome to CapAble</h1>
+        <p class="lead mb-4">Take control of your finances with our powerful and intuitive financial management platform.</p>
+        <a href="{{ url_for('add_transaction') }}" class="btn btn-light btn-lg btn-primary-custom">
+          <i class="fas fa-plus me-2"></i>Add Your First Transaction
+        </a>
+      </div>
+      <div class="col-lg-4 text-center">
+        <i class="fas fa-chart-pie fa-10x opacity-50 d-none d-lg-block"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container py-5">
+  <!-- Charts Section -->
+  <div class="row mb-5">
+    <div class="col-md-6 mb-4">
+      <div class="card card-custom">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Income vs Expenses</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="pieChart" width="400" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-4">
+      <div class="card card-custom">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Monthly Trend</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="barChart" width="400" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-5">
+    <div class="col-md-3 mb-4">
+      <div class="card card-custom text-center">
+        <div class="card-body">
+          <i class="fas fa-dollar-sign fa-2x text-success mb-3"></i>
+          <h5 class="card-title">Total Income</h5>
+          <h3 class="text-success">${{ "%.2f"|format(total_income) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-4">
+      <div class="card card-custom text-center">
+        <div class="card-body">
+          <i class="fas fa-credit-card fa-2x text-danger mb-3"></i>
+          <h5 class="card-title">Total Expenses</h5>
+          <h3 class="text-danger">${{ "%.2f"|format(total_expenses) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-4">
+      <div class="card card-custom text-center">
+        <div class="card-body">
+          <i class="fas fa-balance-scale fa-2x text-primary mb-3"></i>
+          <h5 class="card-title">Net Balance</h5>
+          <h3 class="text-{{ 'success' if (total_income - total_expenses) >= 0 else 'danger' }}">${{ "%.2f"|format(total_income - total_expenses) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-4">
+      <div class="card card-custom text-center">
+        <div class="card-body">
+          <i class="fas fa-list fa-2x text-info mb-3"></i>
+          <h5 class="card-title">Total Transactions</h5>
+          <h3 class="text-info">{{ transactions|length }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card card-custom">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="fas fa-list me-2"></i>Recent Transactions
+            </h5>
+            <div class="btn-group">
+              <a href="{{ url_for('export_csv') }}" class="btn btn-success btn-sm">
+                <i class="fas fa-download me-1"></i>Export CSV
+              </a>
+              <a href="{{ url_for('add_transaction') }}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-1"></i>Add New
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Search and Filter -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <input type="text" id="searchInput" class="form-control" placeholder="Search transactions...">
+            </div>
+            <div class="col-md-3">
+              <select id="typeFilter" class="form-select">
+                <option value="">All Types</option>
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <input type="month" id="monthFilter" class="form-control">
+            </div>
+            <div class="col-md-2">
+              <button id="clearFilters" class="btn btn-outline-secondary w-100">Clear</button>
+            </div>
+          </div>
+        <div class="card-body">
+          {% if transactions %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th><i class="fas fa-calendar me-1"></i>Date</th>
+                  <th><i class="fas fa-align-left me-1"></i>Description</th>
+                  <th><i class="fas fa-dollar-sign me-1"></i>Amount</th>
+                  <th><i class="fas fa-tag me-1"></i>Type</th>
+                  <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for txn in transactions %}
+                <tr>
+                  <td>{{ txn.date }}</td>
+                  <td>{{ txn.description }}</td>
+                  <td>
+                    <span class="badge bg-{{ 'success' if txn.type == 'Income' else 'danger' }} fs-6">
+                      ${{ "%.2f"|format(txn.amount) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge bg-{{ 'success' if txn.type == 'Income' else 'warning' }}">
+                      <i class="fas fa-{{ 'plus' if txn.type == 'Income' else 'minus' }} me-1"></i>
+                      {{ txn.type }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <a href="{{ url_for('edit_transaction', txn_id=txn.id) }}" 
+                         class="btn btn-sm btn-outline-primary" title="Edit">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="{{ url_for('delete_transaction', txn_id=txn.id) }}" 
+                         class="btn btn-sm btn-outline-danger" 
+                         onclick="return confirm('Are you sure you want to delete this transaction?')"
+                         title="Delete">
+                        <i class="fas fa-trash"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-inbox fa-5x text-muted mb-3"></i>
+            <h4 class="text-muted">No transactions yet</h4>
+            <p class="text-muted">Start by adding your first transaction to see your financial overview.</p>
+            <a href="{{ url_for('add_transaction') }}" class="btn btn-primary btn-lg">
+              <i class="fas fa-plus me-2"></i>Add Transaction
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Chart.js Implementation
+const ctx1 = document.getElementById('pieChart').getContext('2d');
+const ctx2 = document.getElementById('barChart').getContext('2d');
+
+// Pie Chart - Income vs Expenses
+new Chart(ctx1, {
+  type: 'pie',
+  data: {
+    labels: ['Income', 'Expenses'],
+    datasets: [{
+      data: [{{ total_income }}, {{ total_expenses }}],
+      backgroundColor: ['#28a745', '#dc3545']
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false
+  }
+});
+
+// Bar Chart - Monthly Trend (simplified)
+const monthlyData = {};
+{% for txn in transactions %}
+const month = '{{ txn.date }}'.substring(0, 7);
+if (!monthlyData[month]) {
+  monthlyData[month] = { income: 0, expense: 0 };
+}
+if ('{{ txn.type }}' === 'Income') {
+  monthlyData[month].income += {{ txn.amount }};
+} else {
+  monthlyData[month].expense += {{ txn.amount }};
+}
+{% endfor %}
+
+const months = Object.keys(monthlyData).sort();
+const incomeData = months.map(month => monthlyData[month].income);
+const expenseData = months.map(month => monthlyData[month].expense);
+
+new Chart(ctx2, {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'Income',
+      data: incomeData,
+      backgroundColor: '#28a745'
+    }, {
+      label: 'Expenses',
+      data: expenseData,
+      backgroundColor: '#dc3545'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  }
+});
+
+// Search and Filter Functionality
+document.getElementById('searchInput').addEventListener('input', filterTransactions);
+document.getElementById('typeFilter').addEventListener('change', filterTransactions);
+document.getElementById('monthFilter').addEventListener('change', filterTransactions);
+document.getElementById('clearFilters').addEventListener('click', clearFilters);
+
+function filterTransactions() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const typeFilter = document.getElementById('typeFilter').value;
+  const monthFilter = document.getElementById('monthFilter').value;
+  
+  const rows = document.querySelectorAll('tbody tr');
+  
+  rows.forEach(row => {
+    const description = row.cells[1].textContent.toLowerCase();
+    const type = row.cells[3].textContent.trim();
+    const date = row.cells[0].textContent;
+    const month = date.substring(0, 7);
+    
+    const matchesSearch = description.includes(searchTerm);
+    const matchesType = !typeFilter || type.includes(typeFilter);
+    const matchesMonth = !monthFilter || month === monthFilter;
+    
+    row.style.display = (matchesSearch && matchesType && matchesMonth) ? '' : 'none';
+  });
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('typeFilter').value = '';
+  document.getElementById('monthFilter').value = '';
+  filterTransactions();
+}
+</script>
+
+{% endblock %}

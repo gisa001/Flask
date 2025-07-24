@@ -1,0 +1,16 @@
+[
+    {
+        "id": "b2a82649-bc0a-471c-adc1-38e129b76b51",
+        "date": "2025-09-21",
+        "description": "sales",
+        "amount": 70000.0,
+        "type": "Income"
+    },
+    {
+        "id": "134caddb-9fa8-4946-86d5-310d9e9b6b92",
+        "date": "2025-09-22",
+        "description": "paid out to buy a land",
+        "amount": 1000000.0,
+        "type": "Income"
+    }
+]

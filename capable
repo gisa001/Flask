@@ -1,0 +1,116 @@
+# CapAble MVP Starter
+# Backend: Python + Flask + SQLite
+# Frontend: Simple HTML form
+
+from flask import Flask, render_template_string, request, redirect, url_for
+import sqlite3
+
+app = Flask(__name__)
+
+# Initialize SQLite DB
+def init_db():
+    conn = sqlite3.connect('capable.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            type TEXT,
+            amount REAL,
+            description TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Home page with transaction form
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        date = request.form['date']
+        type_ = request.form['type']
+        amount = float(request.form['amount'])
+        description = request.form['description']
+
+        conn = sqlite3.connect('capable.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO transactions (date, type, amount, description) VALUES (?, ?, ?, ?)",
+                  (date, type_, amount, description))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('index'))
+
+    conn = sqlite3.connect('capable.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM transactions")
+    transactions = c.fetchall()
+    conn.close()
+
+    return render_template_string(TEMPLATE, transactions=transactions)
+
+# Profit & Loss Report
+@app.route('/report')
+def report():
+    conn = sqlite3.connect('capable.db')
+    c = conn.cursor()
+    c.execute("SELECT type, SUM(amount) FROM transactions GROUP BY type")
+    summary = c.fetchall()
+    conn.close()
+
+    income = sum(amount for t, amount in summary if t == 'income')
+    expense = sum(amount for t, amount in summary if t == 'expense')
+    net_profit = income - expense
+
+    return render_template_string(REPORT_TEMPLATE, income=income, expense=expense, net_profit=net_profit)
+
+
+TEMPLATE = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CapAble - Transactions</title>
+</head>
+<body>
+    <h1>Transaction Entry</h1>
+    <form method="POST">
+        Date: <input type="date" name="date" required><br>
+        Type: 
+        <select name="type">
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+        </select><br>
+        Amount: <input type="number" name="amount" step="0.01" required><br>
+        Description: <input type="text" name="description"><br>
+        <input type="submit" value="Add Transaction">
+    </form>
+
+    <h2>Transactions</h2>
+    <ul>
+    {% for tx in transactions %}
+        <li>{{ tx[1] }} - {{ tx[2] }} - {{ tx[3] }} - {{ tx[4] }}</li>
+    {% endfor %}
+    </ul>
+
+    <a href="/report">View Profit & Loss Report</a>
+</body>
+</html>
+'''
+
+REPORT_TEMPLATE = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profit & Loss Report</title>
+</head>
+<body>
+    <h1>Profit & Loss Report</h1>
+    <p><strong>Total Income:</strong> {{ income }}</p>
+    <p><strong>Total Expenses:</strong> {{ expense }}</p>
+    <p><strong>Net Profit:</strong> {{ net_profit }}</p>
+    <a href="/">Back to Transactions</a>
+</body>
+</html>
+'''
+
+if __name__== '__main__':
+    app.run(host='0.0.0.0', port=8080)
