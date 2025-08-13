@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,65 +86,73 @@
             </a>
           </li>
         </ul>
-        <ul class="navbar-nav">
-          {% if session.user %}
-          <li class="nav-item">
-            <span class="navbar-text me-3">
-              <i class="fas fa-user me-1"></i>Welcome, {{ session.user }}
-            </span>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('logout') }}">
-              <i class="fas fa-sign-out-alt me-1"></i>Logout
-            </a>
-          </li>
-          {% else %}
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('login') }}">
-              <i class="fas fa-sign-in-alt me-1"></i>Login
-            </a>
-          </li>
-          {% endif %}
-        </ul>
+        <!-- Switch Role Button -->
+        <button class="btn btn-warning ms-2" data-bs-toggle="modal" data-bs-target="#switchRoleModal">
+          <i class="fas fa-user-switch me-1"></i>Switch Role
+        </button>
       </div>
     </div>
   </nav>
 
-  <!-- Flash Messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="container mt-3">
-        {% for category, message in messages %}
-          <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  <!-- Main Content -->
-  <main>
-    {% block content %}{% endblock %}
-  </main>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6">
-          <h5><i class="fas fa-chart-line me-2"></i>CapAble</h5>
-          <p class="mb-0">Your personal financial management solution</p>
+  <!-- Switch Role Modal -->
+  <div class="modal fade" id="switchRoleModal" tabindex="-1" aria-labelledby="switchRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="switchRoleModalLabel">Select a Role</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="col-md-6 text-md-end">
-          <p class="mb-0">&copy; 2024 CapAble. All rights reserved.</p>
+        <div class="modal-body">
+          <ul class="list-group" id="role-list">
+            <!-- Roles will be injected by JS -->
+          </ul>
         </div>
       </div>
+    </div>
+  </div>
+
+  <script>
+    // List all roles here
+    const roles = [
+      { name: "Accountant", icon: "fa-calculator" },
+      { name: "Admin", icon: "fa-user-shield" },
+      { name: "Manager", icon: "fa-user-tie" },
+      { name: "Viewer", icon: "fa-eye" }
+      // Add more roles here as needed
+    ];
+
+    // Populate modal with roles
+    document.addEventListener("DOMContentLoaded", function() {
+      const roleList = document.getElementById("role-list");
+      roleList.innerHTML = "";
+      roles.forEach(role => {
+        const li = document.createElement("li");
+        li.className = "list-group-item list-group-item-action d-flex align-items-center";
+        li.style.cursor = "pointer";
+        li.innerHTML = `<i class="fas ${role.icon} me-2"></i>${role.name}`;
+        li.onclick = function() {
+          // You would make an AJAX request here to update the user's role in the backend
+          alert("Switched to role: " + role.name);
+          // Optionally, reload page or redirect based on chosen role
+          // location.reload();
+          // Close modal
+          var modal = bootstrap.Modal.getInstance(document.getElementById('switchRoleModal'));
+          modal.hide();
+        };
+        roleList.appendChild(li);
+      });
+    });
+  </script>
+
+  {% block content %}{% endblock %}
+  
+  <footer class="footer mt-auto py-3">
+    <div class="container text-center">
+      <span>© 2025 CapAble. All rights reserved.</span>
     </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
